@@ -8,9 +8,10 @@ import 'package:teledart/telegram.dart';
 class BotApi {
   late Bot bot;
 
-  var teledart = TeleDart(Telegram('_MY_KEY_'), Event('lis_telegram_bot'));
+
 
   botInit() {
+    var teledart = TeleDart(Telegram('КЛЮЧ'), Event('lis_telegram_bot'));
     bot = Bot();
     bot.teledart = teledart;
     bot.teledart.start();
@@ -22,7 +23,7 @@ class BotApi {
     return bot;
   }
 
-  botSendMessage(Bot bot, String message) {
+  botSendMessage(String message) {
     if (bot.msgId != null) {
       bot.teledart.telegram.sendMessage(bot.msgId, message);
     }

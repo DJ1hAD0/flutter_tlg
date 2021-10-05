@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
                     )),
                 IconButton(
                     onPressed: () =>
-                        BotApi().botSendMessage(mybot, _fieldController.text),
+                      BotApi().botSendMessage(_fieldController.text),
                     icon: Icon(Icons.send))
               ],
             )));
@@ -77,6 +77,6 @@ class _MyAppState extends State<MyApp> {
 
   _botStart(Bot mybot) async {
     msg = BotApi().botListenMessages(mybot.teledart);
-    print(msg);
+    _msgs.add({msg : 'test'});
   }
 }
