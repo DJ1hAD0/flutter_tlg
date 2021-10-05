@@ -12,15 +12,32 @@ import 'package:teledart/telegram.dart';
 class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
+
+  void renderMsg(text) {}
 }
 
 class _MyAppState extends State<MyApp> {
-  Bot mybot = BotApi().botInit();
+  late Bot mybot;
+  late String botName;
 
   final _formKey = GlobalKey<FormState>();
   TextEditingController _fieldController = TextEditingController();
   List<Map<String, String>> _msgs = [];
   String msg = '';
+
+  @override
+  void initState() {
+    super.initState();
+    BotApi().botInit().then((bot) {
+      mybot = bot;
+      botName = bot.botName;
+      mybot.teledart.onMessage().listen((message) {
+        setState(() {
+          _msgs.add({message.text: message.chat.username.toString()});
+        });
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,12 +47,7 @@ class _MyAppState extends State<MyApp> {
         home: Scaffold(
             appBar: AppBar(
               title: const Text('Lis telegram bot'),
-              actions: [
-                IconButton(
-                  onPressed: () => _botStart(mybot.teledart),
-                  icon: Icon(Icons.ac_unit),
-                )
-              ],
+              actions: [],
             ),
             body: Column(
               children: [
@@ -43,7 +55,7 @@ class _MyAppState extends State<MyApp> {
                     child: Column(children: [
                   Builder(builder: (BuildContext context) {
                     return Container(
-                        height: MediaQuery.of(context).size.height / 1.8,
+                        height: MediaQuery.of(context).size.height / 4,
                         child: ListView.builder(
                             itemCount: _msgs.length,
                             itemBuilder: (BuildContext context, int index) {
@@ -68,15 +80,16 @@ class _MyAppState extends State<MyApp> {
                       },
                     )),
                 IconButton(
-                    onPressed: () =>
-                      BotApi().botSendMessage(_fieldController.text),
+                    onPressed: (){
+                                BotApi().botSendMessage(mybot, _fieldController.text);
+                                setState(() {
+                                  _msgs.add({botName : _fieldController.text});
+                                });
+
+                    },
                     icon: Icon(Icons.send))
               ],
             )));
   }
 
-  _botStart(Bot mybot) async {
-    msg = BotApi().botListenMessages(mybot.teledart);
-    _msgs.add({msg : 'test'});
-  }
 }
