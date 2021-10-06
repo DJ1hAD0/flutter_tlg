@@ -1,8 +1,8 @@
 // ignore: file_names
 // ignore_for_file: file_names
 
+import 'package:flutter_tlg/controls/NextCloudApi.dart';
 import 'package:flutter_tlg/model/Bot.dart';
-import 'package:flutter_tlg/view/MyApp.dart';
 import 'package:teledart/teledart.dart';
 import 'package:teledart/telegram.dart';
 
@@ -12,7 +12,7 @@ class BotApi {
 
 
   botInit() async {
-    var telegram = Telegram('_MY_KEY_');
+    var telegram = Telegram('API_KEY');
     var event = Event((await telegram.getMe()).username!);
     var teledart = TeleDart(telegram, event);
     bot = Bot();
@@ -25,6 +25,13 @@ class BotApi {
         .listen((message) {
       bot.msgId = message.chat.id;
       teledart.telegram.sendMessage(message.chat.id, 'Bot init success!');
+
+    });
+    bot.teledart
+        .onMessage(entityType: 'bot_command', keyword: 'upload')
+        .listen((message) {
+      NextCloudApi().fileUpload();
+      teledart.telegram.sendMessage(message.chat.id, 'Photo uploaded');
 
     });
     return bot;
