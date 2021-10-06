@@ -12,7 +12,7 @@ class BotApi {
 
 
   botInit() async {
-    var telegram = Telegram('_TOKEN_');
+    var telegram = Telegram('_MY_KEY_');
     var event = Event((await telegram.getMe()).username!);
     var teledart = TeleDart(telegram, event);
     bot = Bot();
