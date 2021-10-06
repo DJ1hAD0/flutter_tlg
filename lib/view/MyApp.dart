@@ -63,7 +63,7 @@ class _MyAppState extends State<MyApp> {
                             itemCount: _msgs.length,
                             itemBuilder: (BuildContext context, int index) {
                               return Row(
-                                  mainAxisAlignment: _msgAlign(index),
+                                  mainAxisAlignment: _msgs[index].keys.toList()[0] == botName ? MainAxisAlignment.end : MainAxisAlignment.start,
                                   children: [
                                     Flexible(
                                       child: Container(
@@ -164,11 +164,5 @@ class _MyAppState extends State<MyApp> {
             )));
   }
 
-  _msgAlign(index) {
-    if (_msgs[index].keys.toList()[0] == botName) {
-      return MainAxisAlignment.end;
-    } else {
-      return MainAxisAlignment.start;
-    }
-  }
+
 }
