@@ -1,14 +1,11 @@
 // ignore: unused_import
 // ignore_for_file: file_names
 
-import 'dart:ffi';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_tlg/controls/BotApi.dart';
 import 'package:flutter_tlg/model/Bot.dart';
-import 'package:teledart/teledart.dart';
-import 'package:teledart/telegram.dart';
+
 
 class MyApp extends StatefulWidget {
   @override
@@ -24,7 +21,8 @@ class _MyAppState extends State<MyApp> {
 
   final _formKey = GlobalKey<FormState>();
   TextEditingController _fieldController = TextEditingController();
-  List<Map<String, String>> _msgs = [];
+
+  List<Map<String, dynamic>> _msgs = [];
   String msg = '';
 
   @override
@@ -36,7 +34,7 @@ class _MyAppState extends State<MyApp> {
       mybot.teledart.onMessage().listen((message) {
         setState(() {
           userName = message.chat.username.toString();
-          _msgs.add({userName: message.text});
+          _msgs.add({userName: message.text != null ? message.text : '' });
         });
       });
     });
