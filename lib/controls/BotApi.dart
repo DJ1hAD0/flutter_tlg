@@ -1,7 +1,6 @@
 // ignore: file_names
 // ignore_for_file: file_names
 
-import 'package:flutter/services.dart';
 import 'package:flutter_tlg/controls/NextCloudApi.dart';
 import 'package:flutter_tlg/model/Bot.dart';
 import 'package:teledart/teledart.dart';
@@ -30,18 +29,31 @@ class BotApi {
     });
 
     bot.teledart.onMessage().listen((message) {
+      DateTime dateToday = DateTime.now();
+      String date = dateToday.toString().substring(0, 10);
+      String fullPath = '/lis_telegram_bot/' +
+          message.chat.username.toString() +
+          '-' +
+          date +
+          '/';
+
       if (message.photo != null) {
+        NextCloudApi().makeFolder(fullPath);
         for (var photo in message.photo) {
           bot.teledart.telegram.getFile(photo.file_id).then((file) {
             //print(file.getDownloadLink(token));
-            var fileName = photo.file_id + (file.file_path!.split('/').last);
 
-            NextCloudApi().fileUpload(file.getDownloadLink(token), fileName);
+            String fileName =
+                DateTime.now().toString() + '-' + (file.file_path!.split('/').last);
+
+            NextCloudApi()
+                .fileUpload(file.getDownloadLink(token), fullPath, fileName);
           });
+
         }
       }
 
-      bot.teledart.telegram.sendMessage(message.chat.id, 'recieved a photo');
+
     });
 
     bot.teledart
