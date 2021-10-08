@@ -32,6 +32,7 @@ dependencies:
   teledart: any
   nextcloud: ^3.0.1
   http: any
+  url_launcher: any
 
 
   # The following adds the Cupertino Icons font to your application.

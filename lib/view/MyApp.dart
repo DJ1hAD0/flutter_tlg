@@ -1,11 +1,11 @@
 // ignore: unused_import
 // ignore_for_file: file_names
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_tlg/controls/BotApi.dart';
+import 'package:flutter_tlg/controls/NextCloudApi.dart';
 import 'package:flutter_tlg/model/Bot.dart';
-
+import 'package:flutter_tlg/view/MessageBubble.dart';
 
 class MyApp extends StatefulWidget {
   @override
@@ -16,25 +16,58 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   late Bot mybot;
-  late String botName;
-  late String userName;
-
+  late String senderName;
+  late String msg;
+  List<Map<String, dynamic>> _msgs = [];
   final _formKey = GlobalKey<FormState>();
   TextEditingController _fieldController = TextEditingController();
-
-  List<Map<String, dynamic>> _msgs = [];
-  String msg = '';
+  MessageBubble _bubble = MessageBubble();
+  String date = DateTime.now().toString().substring(0, 10);
+  String photoUrl = '';
 
   @override
   void initState() {
     super.initState();
     BotApi().botInit().then((bot) {
+
       mybot = bot;
-      botName = bot.botName;
       mybot.teledart.onMessage().listen((message) {
         setState(() {
-          userName = message.chat.username.toString();
-          _msgs.add({userName: message.text != null ? message.text : '' });
+          senderName = message.chat.username.toString();
+          _bubble.senderName = senderName;
+          _bubble.msg = message.text;
+          _bubble.orientation = false;
+
+          String fullPath = '/lis_telegram_bot/' +
+              message.chat.username.toString() +
+              '-' +
+              date +
+              '/';
+
+          if (message.photo != null) {
+            NextCloudApi()
+                .makeFolder(fullPath)
+                .then((result) => BotApi().botSendMessage(mybot, result));
+            for (var photo in message.photo) {
+              bot.teledart.telegram.getFile(photo.file_id).then((file) {
+                String fileName = DateTime.now().toString() +
+                    '-' +
+                    (file.file_path!.split('/').last);
+
+                photoUrl = file.getDownloadLink(BotApi().token);
+
+                NextCloudApi()
+                    .fileUpload(photoUrl, fullPath, fileName)
+                    .then((result) => BotApi().botSendMessage(mybot, result));
+              });
+            }
+            _bubble.photoUrl = photoUrl;
+            _bubble.msg = senderName + ' отправил фотографию';
+          }
+
+          _msgs.add({
+            senderName: _bubble
+          }); // message.text != null ? message.text : ''
         });
       });
     });
@@ -62,66 +95,12 @@ class _MyAppState extends State<MyApp> {
                             itemBuilder: (BuildContext context, int index) {
                               return Row(
                                   mainAxisAlignment:
-                                      _msgs[index].keys.toList()[0] == botName
+                                      _msgs[index].keys.toList()[0] ==
+                                              mybot.botName
                                           ? MainAxisAlignment.end
                                           : MainAxisAlignment.start,
                                   children: [
-                                    Flexible(
-                                      child: Container(
-                                        margin: const EdgeInsets.all(15.0),
-                                        padding: const EdgeInsets.all(3.0),
-                                        decoration: BoxDecoration(
-                                            color: Colors.white10,
-                                            border: Border.all(
-                                                color: Colors.tealAccent),
-                                            borderRadius: BorderRadius.only(
-                                              bottomLeft: _msgs[index]
-                                                          .keys
-                                                          .toList()[0] ==
-                                                      botName
-                                                  ? Radius.circular(22.0)
-                                                  : Radius.circular(0),
-                                              bottomRight: _msgs[index]
-                                                          .keys
-                                                          .toList()[0] ==
-                                                      botName
-                                                  ? Radius.circular(0.0)
-                                                  : Radius.circular(22.0),
-                                              topRight: Radius.circular(22.0),
-                                              topLeft: Radius.circular(22.0),
-                                            )
-                                            /*borderRadius: BorderRadius.all(
-                                              Radius.circular(30.0)),*/
-                                            ),
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(5.0),
-                                              child: Text(
-                                                '${_msgs.isNotEmpty ? _msgs[index].values.first : ''}',
-                                                style: TextStyle(
-                                                    fontSize: 20.0,
-                                                    fontWeight:
-                                                        FontWeight.w500),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                      10.0, 10.0, 50.0, 10.0),
-                                              child: Text(
-                                                '${_msgs.isNotEmpty ? _msgs[index].keys.first : ''}',
-                                                style: TextStyle(
-                                                    fontSize: 10.0,
-                                                    fontWeight: FontWeight.w500,
-                                                    color: Colors.tealAccent),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+                                    Flexible(child: _bubble),
                                   ]);
                             }));
                   })
@@ -137,7 +116,10 @@ class _MyAppState extends State<MyApp> {
                                   BotApi().botSendMessage(
                                       mybot, _fieldController.text);
                                   setState(() {
-                                    _msgs.add({botName: _fieldController.text});
+                                    _bubble.senderName = mybot.botName;
+                                    _bubble.msg = _fieldController.text;
+                                    _bubble.orientation = true;
+                                    _msgs.add({mybot.botName: _bubble});
                                     _fieldController.text = '';
                                   });
                                 }

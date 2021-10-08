@@ -7,24 +7,33 @@ import 'package:nextcloud/nextcloud.dart';
 import 'package:http/http.dart' as http;
 
 class NextCloudApi {
-
-
   final client = NextCloudClient.withCredentials(
     Uri(host: "HOST", path: "/cloud/"),
-    'USERNAME',
+    'USER',
     'PASSWORD',
   );
 
   makeFolder(fullpath) async {
-
-    await client.webDav.mkdir(fullpath);
-
+    try {
+      await client.webDav.mkdir(fullpath);
+    } on RequestException catch (e) {
+      return 'Ошибка создания папки: ' +
+          e.statusCode.toString() +
+          e.body.toString();
+    }
+    return '--------------------';
   }
 
   fileUpload(file_url, String localPath, String fileName) async {
-
     http.Response response = await http.get(Uri.parse(file_url));
     final Uint8List list = response.bodyBytes;
-    await client.webDav.upload(list, localPath + fileName);
+    try {
+      await client.webDav.upload(list, localPath + fileName);
+    } on RequestException catch (e) {
+      return 'Ошибка загрузки файла: ' +
+          e.statusCode.toString() +
+          e.body.toString();
+    }
+    return 'Файл успешно загружен в облако!';
   }
 }

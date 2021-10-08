@@ -9,10 +9,10 @@ import 'package:teledart/telegram.dart';
 class BotApi {
   late Bot bot;
   String msg = '';
+  final String token = 'TOKEN';
+
 
   botInit() async {
-    final String token = 'TOKEN';
-
     bot = Bot();
     bot.telegram = Telegram(token);
     bot.botName = (await bot.telegram.getMe()).username!;
@@ -24,44 +24,12 @@ class BotApi {
         .onMessage(entityType: 'bot_command', keyword: 'start')
         .listen((message) {
       bot.msgId = message.chat.id;
-      bot.teledart.telegram.sendMessage(message.chat.id,
-          'BOT INIT SUCCESS! CHAT_ID = ' + bot.msgId.toString());
+      botSendMessage(bot,'BOT INIT SUCCESS! CHAT_ID = ' + bot.msgId.toString());
+
+     /* bot.teledart.telegram.sendMessage(message.chat.id,
+          'BOT INIT SUCCESS! CHAT_ID = ' + bot.msgId.toString());*/
     });
 
-    bot.teledart.onMessage().listen((message) {
-      DateTime dateToday = DateTime.now();
-      String date = dateToday.toString().substring(0, 10);
-      String fullPath = '/lis_telegram_bot/' +
-          message.chat.username.toString() +
-          '-' +
-          date +
-          '/';
-
-      if (message.photo != null) {
-        NextCloudApi().makeFolder(fullPath);
-        for (var photo in message.photo) {
-          bot.teledart.telegram.getFile(photo.file_id).then((file) {
-            //print(file.getDownloadLink(token));
-
-            String fileName =
-                DateTime.now().toString() + '-' + (file.file_path!.split('/').last);
-
-            NextCloudApi()
-                .fileUpload(file.getDownloadLink(token), fullPath, fileName);
-          });
-
-        }
-      }
-
-
-    });
-
-    bot.teledart
-        .onMessage(entityType: 'bot_command', keyword: 'upload')
-        .listen((message) {
-      //NextCloudApi().fileUpload();
-      bot.teledart.telegram.sendMessage(message.chat.id, 'Photo uploaded');
-    });
     return bot;
   }
 
